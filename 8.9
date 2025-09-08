@@ -61,6 +61,11 @@
     #efw-fab:hover{filter:brightness(1.05)}
     #efw-fab:active{transform:translateX(-50%) scale(.98)}
     .camera-running #efw-fab{opacity:1;pointer-events:auto}
+    /* כפתור צילום צף */
+    #efw-capture{position:absolute;z-index:4;bottom:12px;left:calc(50% + 72px);transform:translateX(-50%);width:56px;height:56px;border-radius:9999px;border:none;background:#0f172a;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;opacity:0;pointer-events:none;transition:opacity .3s ease}
+    #efw-capture:hover{filter:brightness(1.05)}
+    #efw-capture:active{transform:translateX(-50%) scale(.98)}
+    .camera-running #efw-capture{opacity:1;pointer-events:auto}
   </style>
 
   <div class="efw-card">
@@ -108,6 +113,7 @@
 
           <!-- כפתור עגול צף לפתיחה/סגירה של החלונית -->
           <button id="efw-fab" type="button" title="בחירת צבע" aria-controls="efw-palette" aria-expanded="false">🎨</button>
+          <button id="efw-capture" type="button" title="צילום" aria-label="צילום">📸</button>
         </div>
         <div id="efw-status" class="efw-status efw-small">לחץ על "הפעל מצלמה" להתחלה</div>
         <button id="efw-stop" class="efw-btn sec" disabled style="margin-top:16px;padding:14px 32px">עצור מצלמה</button>
@@ -134,6 +140,7 @@
     const fabBtn = document.getElementById('efw-fab');
     const wrapEl = document.querySelector('.efw-video-wrap');
     const pal = document.getElementById('efw-palette');
+    const btnCapture = document.getElementById('efw-capture');
     
     if (fabBtn && wrapEl && pal){
       fabBtn.addEventListener('click', ()=>{
@@ -741,6 +748,33 @@
       });
     });
     alphaInp.addEventListener('input', () => { alphaVal.textContent = alphaInp.value; });
+
+    // צילום + הורדה
+    function snapshotAndDownload(){
+      try{
+        const pad = (n)=> String(n).padStart(2,'0');
+        const d = new Date();
+        const fname = `eye-filter-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.png`;
+        if (canvas.toBlob){
+          canvas.toBlob((blob)=>{
+            if(!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = fname; document.body.appendChild(a);
+            a.click();
+            setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+          }, 'image/png');
+        } else {
+          const url = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = url; a.download = fname; document.body.appendChild(a);
+          a.click(); a.remove();
+        }
+      }catch(err){
+        setStatus('שגיאה בצילום/הורדה', false);
+      }
+    }
+    if (btnCapture){ btnCapture.addEventListener('click', snapshotAndDownload); }
   })();
   </script>
 </div>
