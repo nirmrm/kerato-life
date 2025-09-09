@@ -53,7 +53,7 @@
     .camera-running #efw-start-center{opacity:0;pointer-events:none}
 
     /* חלונית צבעים צפה */
-    .efw-palette{position:absolute;z-index:4;top:46px;left:50%;transform:translate(-50%,-8px) scale(.98);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.15);width:min(92%,520px);padding:12px}
+    .efw-palette{position:absolute;z-index:4;top:46px;left:50%;transform:translate(-50%,-8px) scale(.98);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;background:transparent;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.15);width:min(92%,520px);padding:12px}
     .efw-video-wrap.palette-open .efw-palette{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
     
     /* כפתור צבעים צף */
@@ -66,6 +66,8 @@
     #efw-capture:hover{filter:brightness(1.05)}
     #efw-capture:active{transform:translateX(-50%) scale(.98)}
     .camera-running #efw-capture{opacity:1;pointer-events:auto}
+    /* הסתרת כפתור צילום כאשר חלונית הצבעים פתוחה */
+    .efw-video-wrap.palette-open #efw-capture{opacity:0;pointer-events:none}
   </style>
 
   <div class="efw-card">
