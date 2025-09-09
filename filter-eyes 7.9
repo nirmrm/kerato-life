@@ -196,8 +196,9 @@
 
     const EYELID_MASK = {
       ENABLED: true,
-      CLIP_STRENGTH: 0.55,
-      BLUR_PX: 1.4
+      CLIP_STRENGTH: 1.0,   // לא בשימוש אחרי המעבר ל-destination-in, נשאר כאן לתאימות
+      BLUR_PX: 2.2,         // טשטוש רך יותר לגבול העפעף
+      MARGIN_PX: 1.2        // כיווץ קל פנימה כדי לא לצבוע על קו הריסים
     };
 
     const BLINK = { T0: 0.14, T1: 0.22 }; // רמפה: מתחת ל-T0 נכבה, בין T0 ל-T1 דועך, מעל T1 מלא
@@ -506,22 +507,23 @@
         eyeMaskCtx.restore();
 
         if (EYELID_MASK.ENABLED && lidPoly && lidPoly.length >= 3){
+          // נבנה מסכת פתח-עין (לבנה) ונחתוך איתה את מסכת האיריס ב-destination-in
           eyeCutCtx.save();
           eyeCutCtx.clearRect(0,0,S,S);
           eyeCutCtx.translate(S/2, S/2);
-          eyeCutCtx.fillStyle = 'rgba(255,255,255,1)';
-          eyeCutCtx.fillRect(-S/2, -S/2, S, S);
-          eyeCutCtx.globalCompositeOperation = 'destination-out';
+          const shrink = (r > 0) ? Math.max(0, (r - (EYELID_MASK.MARGIN_PX||0)) / r) : 1;
           eyeCutCtx.beginPath();
-          eyeCutCtx.moveTo(lidPoly[0].x - center.x, lidPoly[0].y - center.y);
+          eyeCutCtx.moveTo((lidPoly[0].x - center.x) * shrink, (lidPoly[0].y - center.y) * shrink);
           for (let i=1;i<lidPoly.length;i++){
             const p = lidPoly[i];
-            eyeCutCtx.lineTo(p.x - center.x, p.y - center.y);
+            eyeCutCtx.lineTo((p.x - center.x) * shrink, (p.y - center.y) * shrink);
           }
           eyeCutCtx.closePath();
+          eyeCutCtx.fillStyle = 'rgba(255,255,255,1)';
           eyeCutCtx.fill();
           eyeCutCtx.restore();
 
+          // טשטוש המסכה לריכוך הגבול
           eyeCutFeatherCtx.save();
           eyeCutFeatherCtx.clearRect(0,0,S,S);
           try { eyeCutFeatherCtx.filter = `blur(${EYELID_MASK.BLUR_PX}px)`; } catch(_) {}
@@ -529,9 +531,10 @@
           try { eyeCutFeatherCtx.filter = 'none'; } catch(_) {}
           eyeCutFeatherCtx.restore();
 
+          // חיתוך מלא: נשמור רק את התחום המשותף (איריס ∩ פתח העין)
           eyeMaskCtx.save();
-          eyeMaskCtx.globalCompositeOperation = 'destination-out';
-          eyeMaskCtx.globalAlpha = Math.max(0, Math.min(1, EYELID_MASK.CLIP_STRENGTH));
+          eyeMaskCtx.globalCompositeOperation = 'destination-in';
+          eyeMaskCtx.globalAlpha = 1;
           eyeMaskCtx.drawImage(eyeCutFeather, 0, 0);
           eyeMaskCtx.restore();
         }
