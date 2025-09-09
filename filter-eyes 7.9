@@ -16,7 +16,7 @@
     .efw-row{display:flex;flex-direction:column;gap:20px;align-items:center}
 
     /* חלון מצלמה – גבוה לאורך */
-    .efw-video-wrap{position:relative;width:100%;background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2);aspect-ratio:3/4;min-height:60vh;max-height:80vh}
+    .efw-video-wrap{position:relative;width:100%;background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2);aspect-ratio:3/4;min-height:60vh;max-height:80vh;transition:background .25s ease}
     @media (max-width:720px){.efw-video-wrap{min-height:70vh;max-height:85vh}}
     @media (min-width:721px){.efw-video-wrap{min-height:65vh;max-height:75vh}}
 
@@ -68,6 +68,9 @@
     .camera-running #efw-capture{opacity:1;pointer-events:auto}
     /* הסתרת כפתור צילום כאשר חלונית הצבעים פתוחה */
     .efw-video-wrap.palette-open #efw-capture{opacity:0;pointer-events:none}
+      /* תגית שם הצבע בתחתית */
+    .efw-color-tag{position:absolute;z-index:4;bottom:6px;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:9999px;background:rgba(15,23,42,.72);color:#fff;font-weight:700;font-size:12px;line-height:1;border:1px solid rgba(255,255,255,.18);box-shadow:0 2px 8px rgba(0,0,0,.25);backdrop-filter:saturate(120%) blur(4px);-webkit-backdrop-filter:saturate(120%) blur(4px);pointer-events:none;opacity:1;transition:opacity .2s ease}
+    .efw-video-wrap.palette-open .efw-color-tag{opacity:0}
   </style>
 
   <div class="efw-card">
@@ -116,6 +119,7 @@
           <!-- כפתור עגול צף לפתיחה/סגירה של החלונית -->
           <button id="efw-fab" type="button" title="בחירת צבע" aria-controls="efw-palette" aria-expanded="false">🎨</button>
           <button id="efw-capture" type="button" title="צילום" aria-label="צילום">📸</button>
+          <div id="efw-color-tag" class="efw-color-tag" aria-live="polite"></div>
         </div>
         <div id="efw-status" class="efw-status efw-small">לחץ על "הפעל מצלמה" להתחלה</div>
         <button id="efw-stop" class="efw-btn sec" disabled style="margin-top:16px;padding:14px 32px">עצור מצלמה</button>
@@ -143,7 +147,53 @@
     const wrapEl = document.querySelector('.efw-video-wrap');
     const pal = document.getElementById('efw-palette');
     const btnCapture = document.getElementById('efw-capture');
-    
+    const colorTag = document.getElementById('efw-color-tag');
+
+    // ===== רקע חלון המצלמה לפי צבע הפילטר =====
+    function clamp(v, min, max){ return v < min ? min : (v > max ? max : v); }
+    function hexToRgb(hex){
+      if (!hex) return {r: 183, g: 164, b: 157};
+      let h = hex.trim().replace('#','');
+      if (h.length === 3) h = h.split('').map(c => c + c).join('');
+      const num = parseInt(h, 16);
+      if (Number.isNaN(num)) return {r: 183, g: 164, b: 157};
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+    function rgbToHex(r,g,b){
+      const toHex = (n)=> clamp(Math.round(n),0,255).toString(16).padStart(2,'0');
+      return '#' + toHex(r) + toHex(g) + toHex(b);
+    }
+    function darkenHex(hex, amount){
+      const {r,g,b} = hexToRgb(hex);
+      return rgbToHex(r*(1-amount), g*(1-amount), b*(1-amount));
+    }
+    function setWrapBgFromColor(hex){
+      if (!wrapEl) return;
+      const c1 = darkenHex(hex, 0.40); // כהה
+      const c2 = darkenHex(hex, 0.70); // כהה יותר
+      wrapEl.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
+    }
+
+    // ===== תווית שם צבע בתחתית =====
+    function getSelectedChip(){
+      const active = document.querySelector('.efw-chip.active');
+      if (active) return active;
+      const chips = document.querySelectorAll('.efw-chip');
+      const val = (colorInp.value||'').toLowerCase();
+      for (const ch of chips){ if ((ch.dataset.color||'').toLowerCase() === val) return ch; }
+      return null;
+    }
+    function updateColorTag(){
+      if (!colorTag) return;
+      const chip = getSelectedChip();
+      const name = (chip && (chip.getAttribute('title') || (chip.textContent||'').trim())) || (colorInp.value||'');
+      colorTag.textContent = name;
+    }
+
+    // הפעלה ראשונית לפי ברירת המחדל
+    setWrapBgFromColor(colorInp.value);
+      updateColorTag();
+
     if (fabBtn && wrapEl && pal){
       fabBtn.addEventListener('click', ()=>{
         const isOpen = wrapEl.classList.toggle('palette-open');
@@ -196,12 +246,12 @@
 
     const EYELID_MASK = {
       ENABLED: true,
-      CLIP_STRENGTH: 1.0,   // לא בשימוש אחרי המעבר ל-destination-in, נשאר כאן לתאימות
-      BLUR_PX: 2.2,         // טשטוש רך יותר לגבול העפעף
-      MARGIN_PX: 1.2        // כיווץ קל פנימה כדי לא לצבוע על קו הריסים
+      CLIP_STRENGTH: 1.0,
+      BLUR_PX: 2.2,
+      MARGIN_PX: 1.2
     };
 
-    const BLINK = { T0: 0.14, T1: 0.22 }; // רמפה: מתחת ל-T0 נכבה, בין T0 ל-T1 דועך, מעל T1 מלא
+    const BLINK = { T0: 0.14, T1: 0.22 };
 
     const noiseCanvas = document.createElement('canvas');
     const noiseCtx = noiseCanvas.getContext('2d');
@@ -695,7 +745,7 @@
         running = true;
 
         // הראה שהמצלמה פועלת
-        wrapEl.classList.add('camera-running');
+        document.querySelector('.efw-video-wrap')?.classList.add('camera-running');
         btnStop.disabled = false;
 
         setStatus('המצלמה פועלת - זיהוי פנים פעיל', true);
@@ -725,8 +775,8 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // הסתר שהמצלמה פועלת
-        wrapEl.classList.remove('camera-running');
-        wrapEl.classList.remove('palette-open');
+        document.querySelector('.efw-video-wrap')?.classList.remove('camera-running');
+        document.querySelector('.efw-video-wrap')?.classList.remove('palette-open');
         btnStartCenter.disabled = false;
         btnStop.disabled = true;
         
@@ -738,15 +788,20 @@
     btnStop.addEventListener('click', stopCamera);
     colorInp.addEventListener('input', () => {
       document.querySelectorAll('.efw-chip').forEach(c => c.classList.remove('active'));
+      setWrapBgFromColor(colorInp.value);
+      updateColorTag();
     });
     document.querySelectorAll('.efw-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         colorInp.value = chip.dataset.color;
         document.querySelectorAll('.efw-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
+        // עדכן רקע חלון המצלמה בהתאם לצבע שנבחר
+        setWrapBgFromColor(colorInp.value);
+      updateColorTag();
         // סגירה אוטומטית של החלונית לאחר בחירת צבע
-        if (wrapEl && fabBtn && pal){
-          wrapEl.classList.remove('palette-open');
+        if (document.querySelector('.efw-video-wrap') && fabBtn && pal){
+          document.querySelector('.efw-video-wrap').classList.remove('palette-open');
           fabBtn.setAttribute('aria-expanded','false');
           pal.setAttribute('aria-hidden','true');
         }
