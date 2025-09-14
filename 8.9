@@ -24,9 +24,13 @@
     video#efw-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none}
     .efw-label{display:block;font-size:14px;color:#1e293b;margin-bottom:8px;font-weight:600}
     .efw-inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .efw-chip{width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;cursor:pointer;transition:all .2s ease;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-    .efw-chip:hover{transform:scale(1.1);border-color:#475569}
+
+    /* \u05db\u05e4\u05ea\u05d5\u05e8\u05d9 \u05e6\u05d1\u05e2: \u05de\u05e2\u05d5\u05d2\u05d9\u05dd \u05dc\u05d0\u05dc\u05d9\u05e4\u05e1\u05d4 \u05d0\u05d5\u05d1\u05dc\u05d9\u05ea (pill) \u05d5\u05de\u05e6\u05d9\u05d2\u05d9\u05dd \u05d0\u05ea \u05e9\u05dd \u05d4\u05e6\u05d1\u05e2 \u05de-attr(title) */
+    .efw-chip{display:inline-flex;align-items:center;justify-content:center;height:34px;min-width:96px;padding:0 14px;border-radius:9999px;border:2px solid #cbd5e1;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;box-shadow:0 2px 4px rgba(0,0,0,.1);white-space:nowrap;font-size:12px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+    .efw-chip::after{content:attr(title)}
+    .efw-chip:hover{transform:scale(1.04);border-color:#475569}
     .efw-chip.active{border-color:#0ea5e9;box-shadow:0 0 0 2px rgba(14,165,233,.2)}
+
     .efw-btn{appearance:none;border:1px solid #0f172a;background:#0f172a;color:#fff;padding:12px 16px;border-radius:10px;cursor:pointer;font-weight:600;transition:all .2s ease;font-size:14px}
     .efw-btn:hover{background:#1e293b;transform:translateY(-1px)}
     .efw-btn.sec{background:#fff;color:#0f172a;border-color:#cbd5e1}
@@ -78,22 +82,22 @@
             <div class="efw-inline" style="margin-bottom:8px">
               <input id="efw-color" class="efw-color-input" type="hidden" value="#b7a49d" aria-label="בחר צבע" />
               <div class="efw-inline">
-                <div class="efw-chip active" data-color="#b7a49d" title="Dune" style="background:#b7a49d"></div>
-                <div class="efw-chip" data-color="#79655a" title="Sand ER19D" style="background:#79655a"></div>
-                <div class="efw-chip" data-color="#947d51" title="Honey Gold" style="background:#947d51"></div>
-                <div class="efw-chip" data-color="#947ד51" title="Sahara" style="background:#947d51"></div>
-                <div class="efw-chip" data-color="#998a69" title="Tropical" style="background:#998a69"></div>
-                <div class="efw-chip" data-color="#8e9988" title="Savana" style="background:#8e9988"></div>
-                <div class="efw-chip" data-color="#657960" title="Pistache CT88" style="background:#657960"></div>
-                <div class="efw-chip" data-color="#abc0ad" title="Jade" style="background:#abc0ad"></div>
-                <div class="efw-chip" data-color="#d5e4df" title="Arctique" style="background:#d5e4df"></div>
-                <div class="efw-chip" data-color="#a1bccf" title="Green Water" style="background:#a1bccf"></div>
-                <div class="efw-chip" data-color="#9bacbe" title="Turquoise" style="background:#9bacbe"></div>
-                <div class="efw-chip" data-color="#8298c7" title="New Blue" style="background:#8298c7"></div>
-                <div class="efw-chip" data-color="#7785a8" title="Pacific" style="background:#7785a8"></div>
-                <div class="efw-chip" data-color="#c4ד5ff" title="Azur" style="background:#c4d5ff"></div>
-                <div class="efw-chip" data-color="#e6ebff" title="Polar Grey" style="background:#e6ebff"></div>
-                <div class="efw-chip" data-color="#aeb2bd" title="Pearl" style="background:#aeb2bd"></div>
+                <div class="efw-chip active" data-color="#C8A89E" title="Dune" style="background:#C8A89E"></div>
+                <div class="efw-chip" data-color="#8C5B3B" title="Sand ER19D" style="background:#8C5B3B"></div>
+                <div class="efw-chip" data-color="#B8912E" title="Honey Gold" style="background:#B8912E"></div>
+                <div class="efw-chip" data-color="#A27B34" title="Sahara" style="background:#A27B34"></div>
+                <div class="efw-chip" data-color="#9B7B42" title="Tropical" style="background:#9B7B42"></div>
+                <div class="efw-chip" data-color="#9CB08C" title="Savana" style="background:#9CB08C"></div>
+                <div class="efw-chip" data-color="#6C8B5C" title="Pistache CT88" style="background:#6C8B5C"></div>
+                <div class="efw-chip" data-color="#A6CBB7" title="Jade" style="background:#A6CBB7"></div>
+                <div class="efw-chip" data-color="#C5DAD0" title="Arctique" style="background:#C5DAD0"></div>
+                <div class="efw-chip" data-color="#95B7C7" title="Green Water" style="background:#95B7C7"></div>
+                <div class="efw-chip" data-color="#6AA6C9" title="Turquoise" style="background:#6AA6C9"></div>
+                <div class="efw-chip" data-color="#5C82C4" title="New Blue" style="background:#5C82C4"></div>
+                <div class="efw-chip" data-color="#4B5C91" title="Pacific" style="background:#4B5C91"></div>
+                <div class="efw-chip" data-color="#8DB5E0" title="Azur" style="background:#8DB5E0"></div>
+                <div class="efw-chip" data-color="#D4D9E8" title="Polar Grey" style="background:#D4D9E8"></div>
+                <div class="efw-chip" data-color="#AFAFB9" title="Pearl" style="background:#AFAFB9"></div>
               </div>
             </div>
             <div>
