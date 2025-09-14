@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>פילטר צבעי עיניים (מסומן) – blink gating</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>פילטר צבעי עיניים – 9:16 מלא</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 </head>
@@ -15,13 +15,15 @@
     @media (max-width:480px){.efw-card{padding:12px}}
     .efw-row{display:flex;flex-direction:column;gap:20px;align-items:center}
 
-    /* חלון מצלמה – גבוה לאורך */
-    .efw-video-wrap{position:relative;width:100%;background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2);aspect-ratio:3/4;min-height:60vh;max-height:80vh;transition:background .25s ease}
-    @media (max-width:720px){.efw-video-wrap{min-height:70vh;max-height:85vh}}
-    @media (min-width:721px){.efw-video-wrap{min-height:65vh;max-height:75vh}}
+    /* חלון מצלמה – 9:16 מלא */
+    /* היה aspect-ratio: 3/4 → שונה ל-9/16 כדי לכפות פריים אנכי מלא */
+    .efw-video-wrap{position:relative;width:100%;background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.2);aspect-ratio:9/16;min-height:60vh;max-height:90vh;transition:background .25s ease}
+    @media (max-width:720px){.efw-video-wrap{min-height:70vh;max-height:95vh}}
+    @media (min-width:721px){.efw-video-wrap{min-height:65vh;max-height:85vh}}
 
-    #efw-canvas{width:100%;height:100%;display:block;border-radius:12px;object-fit:contain}
-    video#efw-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none}
+    /* ה-canvas מציג את הווידאו חתוך/מותאם ליחס 9:16 */
+    #efw-canvas{width:100%;height:100%;display:block;border-radius:12px;object-fit:cover}
+    video#efw-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
     .efw-label{display:block;font-size:14px;color:#1e293b;margin-bottom:8px;font-weight:600}
     .efw-inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .efw-chip{min-width:96px;height:36px;padding:0 12px;border-radius:9999px;border:2px solid #cbd5e1;cursor:pointer;transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;box-shadow:0 2px 4px rgba(0,0,0,.1);display:inline-flex;align-items:center;justify-content:center;position:relative;font-size:12px;font-weight:700;color:#0f172a;user-select:none}.efw-chip::after{content:attr(title);line-height:1}.efw-chip:hover{transform:translateY(-1px);border-color:#475569}.efw-chip.active{border-color:#0ea5e9;box-shadow:0 0 0 2px rgba(14,165,233,.2)}
@@ -55,20 +57,21 @@
     /* חלונית צבעים צפה */
     .efw-palette{position:absolute;z-index:4;top:46px;left:50%;transform:translate(-50%,-8px) scale(.98);opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;background:transparent;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.15);width:min(92%,520px);padding:12px}
     .efw-video-wrap.palette-open .efw-palette{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
-    
+
     /* כפתור צבעים צף */
     #efw-fab{position:absolute;z-index:4;bottom:12px;left:50%;transform:translateX(-50%);width:56px;height:56px;border-radius:9999px;border:none;background:#0f172a;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;opacity:0;pointer-events:none;transition:opacity .3s ease}
     #efw-fab:hover{filter:brightness(1.05)}
     #efw-fab:active{transform:translateX(-50%) scale(.98)}
     .camera-running #efw-fab{opacity:1;pointer-events:auto}
+
     /* כפתור צילום צף */
     #efw-capture{position:absolute;z-index:4;bottom:12px;left:calc(50% + 72px);transform:translateX(-50%);width:56px;height:56px;border-radius:9999px;border:none;background:#0f172a;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;opacity:0;pointer-events:none;transition:opacity .3s ease}
     #efw-capture:hover{filter:brightness(1.05)}
     #efw-capture:active{transform:translateX(-50%) scale(.98)}
     .camera-running #efw-capture{opacity:1;pointer-events:auto}
-    /* הסתרת כפתור צילום כאשר חלונית הצבעים פתוחה */
     .efw-video-wrap.palette-open #efw-capture{opacity:0;pointer-events:none}
-      /* תגית שם הצבע בתחתית */
+
+    /* תגית שם הצבע בתחתית */
     .efw-color-tag{position:absolute;z-index:4;bottom:6px;left:50%;transform:translateX(-50%);padding:6px 12px;border-radius:9999px;background:rgba(15,23,42,.72);color:#fff;font-weight:700;font-size:12px;line-height:1;border:1px solid rgba(255,255,255,.18);box-shadow:0 2px 8px rgba(0,0,0,.25);backdrop-filter:saturate(120%) blur(4px);-webkit-backdrop-filter:saturate(120%) blur(4px);pointer-events:none;opacity:1;transition:opacity .2s ease}
     .efw-video-wrap.palette-open .efw-color-tag{opacity:0}
   </style>
@@ -77,13 +80,9 @@
     <div class="efw-row">
       <div style="width:100%">
         <div class="efw-video-wrap">
-          <!-- לוגו סטטי קבוע בחלק העליון של חלון המצלמה -->
           <div class="efw-logo">Kerato.Life️👁</div>
-
-          <!-- כפתור הפעלת מצלמה במרכז -->
           <button id="efw-start-center" type="button">הפעל מצלמה</button>
 
-          <!-- חלונית קופצת: 16 צבעים + סליידר עוצמה -->
           <div class="efw-palette" id="efw-palette" role="dialog" aria-hidden="true">
             <div class="efw-inline" style="margin-bottom:8px">
               <input id="efw-color" class="efw-color-input" type="hidden" value="#b7a49d" aria-label="בחר צבע" />
@@ -116,7 +115,6 @@
           <canvas id="efw-canvas"></canvas>
           <video id="efw-video" playsinline autoplay muted></video>
 
-          <!-- כפתור עגול צף לפתיחה/סגירה של החלונית -->
           <button id="efw-fab" type="button" title="בחירת צבע" aria-controls="efw-palette" aria-expanded="false">🎨</button>
           <button id="efw-capture" type="button" title="צילום" aria-label="צילום">📸</button>
           <div id="efw-color-tag" class="efw-color-tag" aria-live="polite"></div>
@@ -131,6 +129,8 @@
   (function(){
     'use strict';
 
+    const TARGET_ASPECT = 9 / 16; // יחס יעד: 9:16
+
     const video = document.getElementById('efw-video');
     const canvas = document.getElementById('efw-canvas');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -142,14 +142,12 @@
     const alphaInp = document.getElementById('efw-alpha');
     const alphaVal = document.getElementById('efw-alpha-val');
 
-    // כפתור צף + שליטה על פתיחה/סגירה של חלונית הצבעים
     const fabBtn = document.getElementById('efw-fab');
     const wrapEl = document.querySelector('.efw-video-wrap');
     const pal = document.getElementById('efw-palette');
     const btnCapture = document.getElementById('efw-capture');
     const colorTag = document.getElementById('efw-color-tag');
 
-    // ===== רקע חלון המצלמה לפי צבע הפילטר =====
     function clamp(v, min, max){ return v < min ? min : (v > max ? max : v); }
     function hexToRgb(hex){
       if (!hex) return {r: 183, g: 164, b: 157};
@@ -169,12 +167,11 @@
     }
     function setWrapBgFromColor(hex){
       if (!wrapEl) return;
-      const c1 = darkenHex(hex, 0.40); // כהה
-      const c2 = darkenHex(hex, 0.70); // כהה יותר
+      const c1 = darkenHex(hex, 0.40);
+      const c2 = darkenHex(hex, 0.70);
       wrapEl.style.background = `linear-gradient(135deg, ${c2}, ${c1})`;
     }
 
-    // ===== תווית שם צבע בתחתית =====
     function getSelectedChip(){
       const active = document.querySelector('.efw-chip.active');
       if (active) return active;
@@ -192,7 +189,7 @@
 
     // הפעלה ראשונית לפי ברירת המחדל
     setWrapBgFromColor(colorInp.value);
-      updateColorTag();
+    updateColorTag();
 
     if (fabBtn && wrapEl && pal){
       fabBtn.addEventListener('click', ()=>{
@@ -201,10 +198,9 @@
         pal.setAttribute('aria-hidden', String(!isOpen));
       });
     }
-    
-    // קבוע למצב ערבוב רגיל
-    const blendMode = 'source-over';
 
+    // ====== FaceMesh & ציור ======
+    const blendMode = 'source-over';
     let running = false;
     let stream = null;
     let faceMesh = null;
@@ -244,13 +240,7 @@
       FILL_BOOST_ALPHA: 0.12
     };
 
-    const EYELID_MASK = {
-      ENABLED: true,
-      CLIP_STRENGTH: 1.0,
-      BLUR_PX: 2.2,
-      MARGIN_PX: 1.2
-    };
-
+    const EYELID_MASK = { ENABLED: true, CLIP_STRENGTH: 1.0, BLUR_PX: 2.2, MARGIN_PX: 1.2 };
     const BLINK = { T0: 0.14, T1: 0.22 };
 
     const noiseCanvas = document.createElement('canvas');
@@ -333,24 +323,46 @@
     function isSecureContext() {
       return location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     }
+
+    // ======== 9:16: גודל קנבס + ציור מכסה (cover) עם חיתוך מרכזי ========
     function updateCanvasSize() {
-      const w = video.videoWidth || 640;
-      const h = video.videoHeight || 480;
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w; canvas.height = h;
+      const vw = video.videoWidth || 720;
+      const vh = video.videoHeight || 1280;
+      // שומרים יחס 9:16 לקנבס, לפי גובה המקור (סקייל אוטומטי ב-CSS)
+      const ch = Math.max(320, vh);
+      const cw = Math.round(ch * TARGET_ASPECT);
+      if (canvas.width !== cw || canvas.height !== ch) {
+        canvas.width = cw; canvas.height = ch;
       }
+    }
+    function drawVideoCoverToCanvas(){
+      const sw = video.videoWidth|0, sh = video.videoHeight|0;
+      if (!sw || !sh) return;
+      const sAR = sw / sh, tAR = TARGET_ASPECT;
+      let sx, sy, sW, sH;
+      if (sAR > tAR){
+        // המקור רחב מדי – חותכים רוחב
+        sH = sh;
+        sW = Math.round(sh * tAR);
+        sx = Math.round((sw - sW) / 2); sy = 0;
+      } else {
+        // המקור צר/גבוה – חותכים גובה
+        sW = sw;
+        sH = Math.round(sw / tAR);
+        sx = 0; sy = Math.round((sh - sH) / 2);
+      }
+      ctx.drawImage(video, sx, sy, sW, sH, 0, 0, canvas.width, canvas.height);
     }
 
     function fract(x){ return x - Math.floor(x); }
     function prand(seed){ return fract(Math.sin(seed*12.9898)*43758.5453); }
 
-    // Blink/openness helpers
     function dist(a,b){ return Math.hypot(a.x - b.x, a.y - b.y); }
     function pt(L,i){ return { x: L[i].x * canvas.width, y: L[i].y * canvas.height }; }
     function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
     function leftOpenness(L){
       const up=L[159], low=L[145], l=L[33], r=L[133];
-      if(!up||!low||!l||!r) return 1; //fallback – עדיף לא לכבות מסך במקרה מידע חסר
+      if(!up||!low||!l||!r) return 1;
       return clamp01( dist(pt(L,159),pt(L,145)) / Math.max(1, dist(pt(L,33),pt(L,133))) );
     }
     function rightOpenness(L){
@@ -382,8 +394,7 @@
         total += d; n++; if (d < minD) minD = d;
       }
       const avgRadius = total / Math.max(1,n);
-      const safeByRing = isFinite(minD) ? (minD * REALISM.RING_MARGIN) : avgRadius;
-      const base = Math.min(avgRadius * REALISM.SIZE_MULTIPLIER, safeByRing);
+      const base = Math.min(avgRadius * REALISM.SIZE_MULTIPLIER, isFinite(minD) ? (minD * REALISM.RING_MARGIN) : avgRadius);
       return Math.max(REALISM.MIN_RADIUS, Math.min(REALISM.MAX_RADIUS, base));
     }
 
@@ -557,7 +568,6 @@
         eyeMaskCtx.restore();
 
         if (EYELID_MASK.ENABLED && lidPoly && lidPoly.length >= 3){
-          // נבנה מסכת פתח-עין (לבנה) ונחתוך איתה את מסכת האיריס ב-destination-in
           eyeCutCtx.save();
           eyeCutCtx.clearRect(0,0,S,S);
           eyeCutCtx.translate(S/2, S/2);
@@ -573,7 +583,6 @@
           eyeCutCtx.fill();
           eyeCutCtx.restore();
 
-          // טשטוש המסכה לריכוך הגבול
           eyeCutFeatherCtx.save();
           eyeCutFeatherCtx.clearRect(0,0,S,S);
           try { eyeCutFeatherCtx.filter = `blur(${EYELID_MASK.BLUR_PX}px)`; } catch(_) {}
@@ -581,7 +590,6 @@
           try { eyeCutFeatherCtx.filter = 'none'; } catch(_) {}
           eyeCutFeatherCtx.restore();
 
-          // חיתוך מלא: נשמור רק את התחום המשותף (איריס ∩ פתח העין)
           eyeMaskCtx.save();
           eyeMaskCtx.globalCompositeOperation = 'destination-in';
           eyeMaskCtx.globalAlpha = 1;
@@ -666,10 +674,13 @@
 
       updateCanvasSize();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+      // מציירים את הווידאו לתוך הקנבס ביחס 9:16 (cover)
+      drawVideoCoverToCanvas();
+
+      // שולחים את הקנבס (לא את הווידאו הגולמי) ל-FaceMesh כדי לשמור עקביות ביחסים
       if (faceMesh) {
-        try { await faceMesh.send({ image: video }); } catch (_) {}
+        try { await faceMesh.send({ image: canvas }); } catch (_) {}
       }
 
       const alpha = parseInt(alphaInp.value, 10) / 100;
@@ -713,23 +724,45 @@
       }
     }
 
+    async function requestStreamWithFallback(){
+      // ניסיון ראשון: לבקש הזרמה ב-9:16 ישירות מן המצלמה
+      const primary = {
+        video: {
+          facingMode: 'user',
+          aspectRatio: { ideal: TARGET_ASPECT },
+          width:  { ideal: 1080 },
+          height: { ideal: 1920 },
+          frameRate: { ideal: 30, max: 60 }
+        },
+        audio: false
+      };
+      try {
+        return await navigator.mediaDevices.getUserMedia(primary);
+      } catch (e) {
+        // דפדפנים מסוימים מתעלמים/דוחים aspectRatio – ניפול לגיבוי ונחייב 9:16 בציור
+        const fallback = {
+          video: {
+            facingMode: 'user',
+            width:  { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 60 }
+          },
+          audio: false
+        };
+        return await navigator.mediaDevices.getUserMedia(fallback);
+      }
+    }
+
     async function startCamera() {
       try {
         if (!isSecureContext()) { setStatus('דרוש HTTPS או localhost לגישה למצלמה', false); return; }
         if (!navigator.mediaDevices?.getUserMedia) { setStatus('הדפדפן לא תומך בגישה למצלמה', false); return; }
 
         btnStartCenter.disabled = true;
-        setLoadingStatus('מבקש גישה למצלמה');
+        setLoadingStatus('מבקש גישה למצלמה (9:16)');
 
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width:  { ideal: 640, max: 1280 },
-            height: { ideal: 480, max: 720 },
-            frameRate: { ideal: 30, max: 60 }
-          },
-          audio: false
-        });
+        // === קבלת סטרים ===
+        stream = await requestStreamWithFallback();
 
         video.srcObject = stream;
         await new Promise((resolve, reject) => {
@@ -743,12 +776,10 @@
         if (!ok) throw new Error('Failed to initialize FaceMesh');
 
         running = true;
-
-        // הראה שהמצלמה פועלת
         document.querySelector('.efw-video-wrap')?.classList.add('camera-running');
         btnStop.disabled = false;
 
-        setStatus('המצלמה פועלת - זיהוי פנים פעיל', true);
+        setStatus('המצלמה פועלת – פריים 9:16 מלא', true);
         processVideoFrame();
 
       } catch (error) {
@@ -773,13 +804,10 @@
         video.srcObject = null;
         currentEyes = { left: null, right: null };
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // הסתר שהמצלמה פועלת
         document.querySelector('.efw-video-wrap')?.classList.remove('camera-running');
         document.querySelector('.efw-video-wrap')?.classList.remove('palette-open');
         btnStartCenter.disabled = false;
         btnStop.disabled = true;
-        
         setStatus('לחץ על "הפעל מצלמה" להתחלה');
       } catch (_) {}
     }
@@ -796,10 +824,8 @@
         colorInp.value = chip.dataset.color;
         document.querySelectorAll('.efw-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
-        // עדכן רקע חלון המצלמה בהתאם לצבע שנבחר
         setWrapBgFromColor(colorInp.value);
-      updateColorTag();
-        // סגירה אוטומטית של החלונית לאחר בחירת צבע
+        updateColorTag();
         if (document.querySelector('.efw-video-wrap') && fabBtn && pal){
           document.querySelector('.efw-video-wrap').classList.remove('palette-open');
           fabBtn.setAttribute('aria-expanded','false');
@@ -809,7 +835,6 @@
     });
     alphaInp.addEventListener('input', () => { alphaVal.textContent = alphaInp.value; });
 
-    // צילום + הורדה
     function snapshotAndDownload(){
       try{
         const pad = (n)=> String(n).padStart(2,'0');
